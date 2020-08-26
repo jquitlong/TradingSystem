@@ -23,26 +23,29 @@ class StockView(viewsets.ModelViewSet):
             quantity = request_data['quantity']
             instance = self.get_object()
 
-            total = StockOrder.objects.filter(stock=instance, owner=request.user
-                ).aggregate(Sum(F('quantity')))['quantity__sum'] 
-
+            total = StockOrder.objects.filter(stock=instance, 
+            owner=request.user).aggregate(Sum(F('quantity')))['quantity__sum'] 
             if total and quantity + total < 0:
                 return Response(data='You dont have enough stock', 
-                    status=HTTP_400_BAD_REQUEST)
+                status=HTTP_400_BAD_REQUEST)
 
             stock_order = StockOrder.objects.create(stock=instance, 
-                owner=request.user, quantity=quantity)
+            owner=request.user, quantity=quantity)
             stock_order = StockOrderSerializer(stock_order)
             
             return Response(data=stock_order.data, status=HTTP_200_OK)
-        except expression as identifier:
-            return Response(data=identifier, status=HTTP_400_BAD_REQUEST)
+        except:
+            return Response(data={}, status=HTTP_400_BAD_REQUEST)
 
 
     @action(detail=True, methods=['get'], url_name='total-invested', url_path='total-invested')
     def total_invested(self, request, *args, **kwargs):
-        instance = self.get_object()
+        try:
+            instance = self.get_object()
 
-        total_invested = StockOrder.objects.filter(stock=instance, owner=request.user
-            ).aggregate(Sum(F('quantity')))['quantity__sum'] * instance.price
-        return Response({'total_invested': total_invested}, status=HTTP_200_OK)
+            total_invested = StockOrder.objects.filter(stock=instance, owner=request.user
+                ).aggregate(Sum(F('quantity')))['quantity__sum'] * instance.price
+            return Response({'total_invested': total_invested}, status=HTTP_200_OK)
+        except:
+            return Response(data={}, status=HTTP_400_BAD_REQUEST)
+

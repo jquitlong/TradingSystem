@@ -23,15 +23,14 @@ def signin(request):
     signin_serializer = UserSigninSerializer(data=request.data)
     if not signin_serializer.is_valid():
         return Response(signin_serializer.errors, 
-            status=HTTP_400_BAD_REQUEST)
+        status=HTTP_400_BAD_REQUEST)
 
     user = authenticate(
-            username=signin_serializer.data['username'],
-            password=signin_serializer.data['password'] 
-        )
+        username=signin_serializer.data['username'],
+        password=signin_serializer.data['password'])
     if not user:
         return Response({'data': 'Invalid Credentials'}, 
-            status=HTTP_404_NOT_FOUND)
+        status=HTTP_404_NOT_FOUND)
         
     token, _ = Token.objects.get_or_create(user = user)
     
@@ -39,10 +38,10 @@ def signin(request):
     user_serialized = UserSerializer(user)
 
     return Response({
-        'user': user_serialized.data, 
-        'expires_in': expires_in(token),
-        'token': token.key
-        }, status=HTTP_200_OK)
+    'user': user_serialized.data, 
+    'expires_in': expires_in(token),
+    'token': token.key}, 
+    status=HTTP_200_OK)
 
 
 class UserView(viewsets.ModelViewSet):
