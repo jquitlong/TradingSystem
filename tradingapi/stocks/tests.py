@@ -21,6 +21,7 @@ class UserTestCase(APITestCase):
         self.quantity = 12
         self.place_trade_url = 'http://127.0.0.1:8000/api/v1/stock/1/place-trade/'
         self.total_invested_url = 'http://127.0.0.1:8000/api/v1/stock/1/total-invested/'
+        self.stock_url = 'http://127.0.0.1:8000/api/v1/stock/'
 
     def test_create_get_stock(self):
         stock = Stock.objects.create(name=self.name, price=self.price)
@@ -109,3 +110,67 @@ class UserTestCase(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(total, self.quantity*self.price)
+
+    def test_create_stock_endpoint(self):
+        user = User.objects.create(username=self.username)
+        user.set_password(self.password)
+        user.save()
+
+        token = Token.objects.create(user=user) 
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + str(token))
+
+        response = client.post(self.stock_url, data={
+            "name": self.name,
+            "price": self.price
+        })
+        name = json.loads(response.content)['name']
+        price = json.loads(response.content)['price']
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(name, self.name)      
+        self.assertEqual(price, self.price)  
+
+    def test_get_stock_endpoint(self):
+        stock = Stock.objects.create(name=self.name, price=self.price)
+        user = User.objects.create(username=self.username)
+        user.set_password(self.password)
+        user.save()
+
+        token = Token.objects.create(user=user) 
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + str(token))
+
+        response = client.get(self.stock_url +' 1/')
+        name = json.loads(response.content)['name']
+        price = json.loads(response.content)['price']
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(name, self.name)      
+        self.assertEqual(price, self.price) 
+
+    def test_update_stock_endpoint(self):
+        stock = Stock.objects.create(name=self.name, price=self.price)
+        user = User.objects.create(username=self.username)
+        user.set_password(self.password)
+        user.save()
+
+        token = Token.objects.create(user=user) 
+        new_name = 'Cadbury'
+        new_price = 50
+
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Token ' + str(token))
+
+        response = client.put(self.stock_url + '1/', data={
+            "name": new_name,
+            "price": new_price
+        })
+        name = json.loads(response.content)['name']
+        price = json.loads(response.content)['price']
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(name, new_name)      
+        self.assertEqual(price, new_price)   
