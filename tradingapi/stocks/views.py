@@ -25,11 +25,10 @@ class StockView(viewsets.ModelViewSet):
 
             total = StockOrder.objects.filter(stock=instance, 
             owner=request.user).aggregate(Sum(F('quantity')))['quantity__sum'] 
-
             if not total:
                 total = 0
 
-            if quantity + total < 0:
+            if int(quantity) + int(total) < 0:
                 return Response(data='You dont have enough stock', 
                 status=HTTP_400_BAD_REQUEST)     
 
@@ -51,5 +50,5 @@ class StockView(viewsets.ModelViewSet):
                 ).aggregate(Sum(F('quantity')))['quantity__sum'] * instance.price
             return Response({'total_invested': total_invested}, status=HTTP_200_OK)
         except:
-            return Response(data={}, status=HTTP_400_BAD_REQUEST)
+            return Response({'total_invested': 0}, status=HTTP_200_OK)
 

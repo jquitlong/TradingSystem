@@ -87,7 +87,7 @@ class UserTestCase(APITestCase):
         response = client.post(self.place_trade_url, data={
             "quantity": self.quantity
         })
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_total_invested(self):
@@ -96,14 +96,13 @@ class UserTestCase(APITestCase):
         user.set_password(self.password)
         user.save()
 
+        stockOrder = StockOrder.objects.create(stock=stock, owner=user,
+            quantity=self.quantity)
+
         token = Token.objects.create(user=user) 
 
         client = APIClient()
-
         client.credentials(HTTP_AUTHORIZATION='Token ' + str(token))
-        response = client.post(self.place_trade_url, data={
-            "quantity": self.quantity
-        })
 
         response = client.get(self.total_invested_url)
         total = json.loads(response.content)['total_invested']
